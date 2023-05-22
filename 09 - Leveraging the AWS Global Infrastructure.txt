@@ -1,0 +1,251 @@
+Leveraging the AWS Global Infrastructure:
+----------------------------------------
+
+Why make a global application?
+------------------------------
+• A global application is an application deployed in multiple geographies
+• On AWS: this could be Regions and / or Edge Locations
+• Decreased Latency
+	• Latency is the time it takes for a network packet to reach a server
+	• It takes time for a packet from Asia to reach the US
+	• Deploy your applications closer to your users to decrease latency, better experience
+• Disaster Recovery (DR)
+	• If an AWS region goes down (earthquake, storms, power shutdown, politics)…
+	• You can fail-over to another region and have your application still working
+	• A DR plan is important to increase the availability of your application
+• Attack protection: distributed global infrastructure is harder to attack 
+
+Global AWS Infrastructure:
+-------------------------
+• Regions: For deploying applications and infrastructure
+• Availability Zones: Made of multiple data centers
+• Edge Locations (Points of Presence): for content delivery as close as possible to users
+• More at: https://infrastructure.aws/
+
+Global Applications in AWS:
+--------------------------
+• Global DNS: Route 53
+	• Great to route users to the closest deployment with least latency
+	• Great for disaster recovery strategies
+• Global Content Delivery Network (CDN): CloudFront
+	• Replicate part of your application to AWS Edge Locations – decrease latency
+	• Cache common requests – improved user experience and decreased latency
+• S3 Transfer Acceleration
+	• Accelerate global uploads & downloads into Amazon S3
+• AWS Global Accelerator:
+	• Improve global application availability and performance using the AWS global network
+	
+-----------------------------------
+
+Amazon Route 53 Overview:
+------------------------
+• Route53 is a Managed DNS (Domain Name System)
+• DNS is a collection of rules and records which helps clients understand how to reach a server through URLs.
+• In AWS, the most common records are:
+	• www.google.com => 12.34.56.78 == A record (IPv4)
+	• www.google.com => 2001:0db8:85a3:0000:0000:8a2e:0370:7334 == AAAA IPv6
+	• search.google.com => www.google.com == CNAME: hostname to hostname
+	• example.com => AWS resource == Alias (ex: ELB, CloudFront, S3, RDS, etc…)
+	
+Route 53 – Diagram for A Record:
+-------------------------------
+
+Web Browser -DNS Request (myapp.mydomain.com)-> Route 53
+
+Route 53 -Send back IP:32.45.67.85 (A record: hostname to IP)-> Web Browser
+
+Web browser -HTTP Request IP:32.45.67.85 (Host: myapp.mydomain.com)-> Application Server (IP:32.45.67.85)
+
+Application Server (IP:32.45.67.85) -HTTP Response-> Web Browser
+
+Route 53 Routing Policies:
+-------------------------
+• Need to know them at a high-level for the Cloud Practitioner Exam
+- SIMPLE ROUTING POLICY:
+	- This has no health checks.
+	- The Web Browser goes to the Route 53, does a DNS questy and get backs the IP address.
+
+- WEIGHTED ROUTING POLICY:
+	- This allows us to distribute the process among multiple EC2 instances.
+	- Weights are assigned to the EC2 instances, and according to their weights, traffic is assgned to them (higher weight means higher traffic). This is some kind of load balancing.
+	- In this policy we can do health checks.
+	- Distribute traffic across multiple instances.
+
+- LATENCY ROUTING POLICY:
+	- In this policy, the latency is reduced by directing users to their closest deployment location of the globally deployed applicaiton using the Rount 53.
+	- For example if an application is deployed globally in Mumbai and California then the person sitting in India will be redirected to the applicaion deployed in Mumbai for better latency.
+	- Minimize latency.
+
+- FAILOVER ROUTING POLICY:
+	- This is a Disaster Recover Policy.
+	- In this policy we will have two instance, one Primary and once Failover.
+	- Route 53 will do Health check on the Primary instance and if the health check fails then the user will be redirected to the Failover instance by Route 53.
+	- This helps with disaster recovery.
+	
+-----------------------------------
+
+Amazon CloudFront:
+-----------------
+• Content Delivery Network (CDN)
+• Improves read performance, content is cached at the edge
+• Improves users experience
+• 216 Point of Presence globally (edge locations)
+• DDoS protection (because worldwide), integration with Shield, AWS Web Application Firewall
+- Use case: Suppose there is a website hosted in a S3 bucket in Australia and a person in America tries to access the data in that S3 bucket. Then the user will be conatcting/requesting the edge/point of presence in America using CloudFront and CloudFront will fetch the data/content from S3 in the Australia and if another user in America tried to fetch the same data, then rather than fetching it again from S3, CloudFront will provide it from the edge location/point of presence.
+
+CloudFront – Origins:
+--------------------
+• S3 bucket 
+	• For distributing files and caching them at the edge 
+	• Enhanced security with CloudFront Origin Access Control (OAC) 
+	• OAC is replacing Origin Access Identity (OAI) 
+	• CloudFront can be used as an ingress (to upload files to S3) 
+• Custom Origin (HTTP) 
+• Application Load Balancer 
+• EC2 instance 
+• S3 website (must first enable the bucket as a static S3 website) 
+• Any HTTP backend you want
+
+CloudFront at a high level:
+--------------------------
+- Client will request some content from the CloudFront Edge Location. CloudFront edge location will check if it has the data or not in the Local Cache. If it does not have the data in the local cache then it will fetch the data from it's origin (S3 or HTTP) and return the data to the client as well as Cache it so that if another user comes to fetch the data, it can quickly get it from the cache. So, CloudFront first checks the Local Cache in the Edge location and only if the data is not there then fetches it from origin.
+
+CloudFront – S3 as an Origin:
+----------------------------
+- Using CloudFront, our content in the S3 bucket can be distributed to the Edge locations all around the world.
+- The S3 bucket connection with the CloudFront is made secure using OAC (Origin Access Control) and S3 bucket policy.
+
+CloudFront vs S3 Cross Region Replication:
+-----------------------------------------
+• CloudFront:
+	• Global Edge network (216 points of presence/edge)
+	• Files are cached for a TTL (maybe a day)
+	• Great for static content that must be available everywhere
+• S3 Cross Region Replication:
+	• Must be setup for each region you want replication to happen
+	• Files are updated in near real-time
+	• Read only
+	• Great for dynamic content that needs to be available at low-latency in few regions
+		
+-----------------------------------
+
+S3 Transfer Acceleration:
+------------------------
+• Increase transfer speed by transferring file to an AWS edge location which will forward the data to the S3 bucket in the target region
+
+	File in USA -Fast (public www)-> Edge Location (USA) -Fast (private AWS)-> S3 Bucket Australia
+	
+-----------------------------------
+
+AWS Global Accelerator:
+----------------------
+• Improve global application availability and performance using the AWS global network
+• Leverage the AWS internal network to optimize the route to your application (60% improvement)
+• 2 Anycast IP are created for your application and traffic is sent through Edge Locations
+• The Edge locations send the traffic to your application
+
+AWS Global Accelerator vs CloudFront:
+------------------------------------
+• They both use the AWS global network and its edge locations around the world
+• Both services integrate with AWS Shield for DDoS protection.
+• CloudFront – Content Delivery Network
+	• Improves performance for your cacheable content (such as images and videos)
+	• Content is served at the edge
+• Global Accelerator
+	• No caching, proxying packets at the edge to applications running in one or more AWS Regions.
+	• Improves performance for a wide range of applications over TCP or UDP
+	• Good for HTTP use cases that require static IP addresses
+	• Good for HTTP use cases that required deterministic, fast regional failover
+		
+-----------------------------------
+
+AWS Outposts:
+------------
+• Hybrid Cloud: businesses that keep an on - premises infrastructure alongside a cloud infrastructure
+• Therefore, two ways of dealing with IT systems: 
+	• One for the AWS cloud (using the AWS console, CLI, and AWS APIs)
+	• One for their on-premises infrastructure
+• AWS Outposts are “server racks” that offers the same AWS infrastructure, services, APIs & tools to build your own applications on-premises just as in the cloud
+• AWS will setup and manage “Outposts Racks” within your on-premises infrastructure and you can start leveraging AWS services on-premises
+• You are responsible for the Outposts Rack physical security
+
+AWS Outposts:
+------------
+• Benefits:
+	• Low-latency access to on-premises systems
+	• Local data processing
+	• Data residency
+	• Easier migration from on-premises to the cloud
+	• Fully managed service
+• Some services that work on Outposts:
+	• Amazon EC2
+	• Amazon EBS
+	• Amazon S3
+	• Amazon EKS
+	• Amazon ECS
+	• Amazon RDS
+	• Amazon EMR
+		
+-----------------------------------
+
+AWS WaveLength:
+--------------
+• WaveLength Zones are infrastructure deployments embedded within the telecommunications providers’ datacenters at the edge of the 5G networks
+• Brings AWS services to the edge of the 5G networks
+• Example: EC2, EBS, VPC…
+• Ultra-low latency applications through 5G networks
+• Traffic doesn’t leave the Communication Service Provider’s (CSP) network
+• High-bandwidth and secure connection to the parent AWS Region
+• No additional charges or service agreements
+• Use cases: Smart Cities, ML-assisted diagnostics, Connected Vehicles, Interactive Live Video Streams, AR/VR, Real-time Gaming, …
+	
+-----------------------------------
+
+AWS Local Zones:
+---------------
+• Places AWS compute, storage, database, and other selected AWS services closer to end users to run latency-sensitive applications
+• Extend your VPC to more locations – “Extension of an AWS Region”
+• Compatible with EC2, RDS, ECS, EBS, ElastiCache, Direct Connect …
+• Example:
+	• AWS Region: N. Virginia (us-east-1)
+	• AWS Local Zones: Boston, Chicago, Dallas, Houston, Miami, …
+		
+-----------------------------------
+
+Global Applications Architecture:
+--------------------------------
+- Single Region, Single AZ
+
+- Single Region, Multi AZ
+
+- Multi Region, Active-Passive
+
+- Multi Region, Active-Active
+	
+-----------------------------------
+
+Global Applications in AWS - Summary:
+------------------------------------
+• Global DNS: Route 53
+	• Great to route users to the closest deployment with least latency
+	• Great for disaster recovery strategies
+• Global Content Delivery Network (CDN): CloudFront
+	• Replicate part of your application to AWS Edge Locations – decrease latency
+	• Cache common requests – improved user experience and decreased latency
+• S3 Transfer Acceleration
+	• Accelerate global uploads & downloads into Amazon S3
+• AWS Global Accelerator
+	• Improve global application availability and performance using the AWS global network
+	
+Global Applications in AWS - Summary:
+------------------------------------
+• AWS Outposts
+	• Deploy Outposts Racks in your own Data Centers to extend AWS services
+• AWS WaveLength
+	• Brings AWS services to the edge of the 5G networks
+	• Ultra-low latency applications
+• AWS Local Zones
+	• Bring AWS resources (compute, database, storage, …) closer to your users
+	• Good for latency-sensitive applications
+	
+-----------------------------------

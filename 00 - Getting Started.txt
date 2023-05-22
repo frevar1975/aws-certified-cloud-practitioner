@@ -1,0 +1,47 @@
+Getting Started:
+===========================
+AWS Global Infrastructure:
+===========================
+1. AWS Regions
+---------------
+- Regions are on a global scale.
+- Regions have multiple zones.
+- Region is a cluster of data centers. 
+- AWS Services are region-scoped.
+- AWS has Regions all over the world, named like us-east-1, eu-west-3, etc.
+
+- To choose a AWS Region:
+a. Compliance with data governance and legal requirements: data never leaves a region without explicit permission.
+b. Proximity to customers: reduced latency
+c. Available service withing a Region: new services and new features aren't available in every Region.
+d. Pricing: pricing varies region to region and is transparent in the service pricing page.
+
+2. AWS Availability Zones
+--------------------------
+- Each region has many availability zones. (minimum is 3 and maximum is 6).
+- Each availability Zones (AZ) is one or more discrete data centers with redundant power, networking, and connectivity.
+- They're separate from each other, so that they're isolated from disasters.
+- They are connected with high bandwidth, ultra-low latency networking.
+
+3. AWS Data Centers
+
+4. AWS Edge Locations / Pointes of Presence
+---------------------------------------------
+- AWS has 216 Points of Presence (205 Edge Locations & || Regional Caches) in 84 cities across 42 countries.
+- Content is delivered to end users with lower latency.
+
+--------------------------------------------------------------
+= AWS has Global Services:
+1. Identity and Access Management (IAM)
+2. Route 53 (DNS Service)
+3. CloudFront (Content Delivery Network
+4. WAF (Web Application Firewall)
+
+= Most AWS Services are Region Scoped:
+1. Amazon EC2 (Insfrastructure as a Service)
+2. Elastic Beanstalk (Platform as a Service)
+3. Lambda (Function as a Service)
+4. Rekognition (Software as a Service)
+
+--------------------------------------------------------------
+
